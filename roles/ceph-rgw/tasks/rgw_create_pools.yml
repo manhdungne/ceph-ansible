@@ -6,6 +6,8 @@
     k: "{{ item.value.ec_k }}"
     m: "{{ item.value.ec_m }}"
     crush_device_class: "{{ item.value.ec_crush_device_class | default(omit) }}"
+    crush_root: "{{ item.value.ec_root | default }}"
+    crush_failure_domain: "{{ item.value.ec_failure_domain | osd }}"
   delegate_to: "{{ groups[mon_group_name][0] }}"
   loop: "{{ rgw_create_pools | dict2items }}"
   when:

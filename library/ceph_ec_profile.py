@@ -121,7 +121,7 @@ def get_profile(module, name, cluster='ceph', container_image=None):
     return cmd
 
 
-def create_profile(module, name, k, m, stripe_unit, crush_device_class, cluster='ceph', force=False, container_image=None):  # noqa: E501
+def create_profile(module, name, k, m, stripe_unit, crush_device_class, crush_root, crush_failure_domain, cluster='ceph', force=False, container_image=None):  # noqa: E501
     '''
     Create a profile
     '''
@@ -133,6 +133,11 @@ def create_profile(module, name, k, m, stripe_unit, crush_device_class, cluster=
         args.append('crush-device-class={}'.format(crush_device_class))
     if force:
         args.append('--force')
+    if crush_root:
+        args.append('crush-root={}'.format(crush_root))
+    if crush_failure_domain:
+        args.append('crush-failure-domain={}'.format(crush_failure_domain))
+
 
     cmd = generate_cmd(sub_cmd=['osd', 'erasure-code-profile'],
                        args=args,
@@ -167,6 +172,9 @@ def run_module():
         k=dict(type='str', required=False),
         m=dict(type='str', required=False),
         crush_device_class=dict(type='str', required=False, default=''),
+        crush_root=dict(type='str', required=False, default=''),
+        crush_failure_domain=dict(type='str', required=False, default=''),
+
     )
 
     module = AnsibleModule(
@@ -183,6 +191,9 @@ def run_module():
     k = module.params.get('k')
     m = module.params.get('m')
     crush_device_class = module.params.get('crush_device_class')
+    crush_root = module.params.get('crush_root')
+    crush_failure_domain = module.params.get('crush_failure_domain')
+
 
     if module.check_mode:
         module.exit_json(
@@ -217,7 +228,9 @@ def run_module():
                                                                 k,
                                                                 m,
                                                                 stripe_unit,
-                                                                crush_device_class,  # noqa: E501
+                                                                crush_device_class,
+                                                                crush_root, 
+                                                                crush_failure_domain,  # noqa: E501
                                                                 cluster,
                                                                 force=True, container_image=container_image))  # noqa: E501
                 changed = True
@@ -228,7 +241,9 @@ def run_module():
                                                                     k,
                                                                     m,
                                                                     stripe_unit,  # noqa: E501
-                                                                    crush_device_class,  # noqa: E501
+                                                                    crush_device_class,
+                                                                    crush_root, 
+                                                                    crush_failure_domain,  # noqa: E501
                                                                     cluster,
                                                                     container_image=container_image))  # noqa: E501
             if rc == 0:
