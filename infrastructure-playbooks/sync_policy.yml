@@ -5,27 +5,27 @@
   gather_facts: false
 
   vars:
-    # Định danh của sync group
-    sync_group_id: "{{ sync_group_id | default('default-sync-group') }}"
-    # Trạng thái của sync group: allowed, enabled, forbidden
-    sync_group_status: "{{ sync_group_status | default('enabled') }}"
+    # Trạng thái cuối cùng của sync group (có thể là: allowed, enabled, forbidden)
+    sync_group_status: "enabled"
 
-    # Danh sách các flow cần tạo
-    sync_flows: "{{ sync_flows | default([]) }}"
-
-    # Cấu hình pipe
+    # Cấu hình PIPE nếu cần
     sync_pipe:
-      pipe_id: "{{ sync_pipe_id | default('default-pipe') }}"
-      source_zones: "{{ sync_pipe_source_zones | default('*') }}"
-      source_bucket: "{{ sync_pipe_source_bucket | default('*') }}"
-      dest_zones: "{{ sync_pipe_dest_zones | default('*') }}"
-      dest_bucket: "{{ sync_pipe_dest_bucket | default('*') }}"
+      pipe_id: "default-pipe"
+      source_zones: "*"
+      source_bucket: "*"
+      dest_zones: "*"
+      dest_bucket: "*"
 
   tasks:
-    - name: Create sync group
+
+    - name: Set default sync_group_id if not passed
+      set_fact:
+        effective_sync_group_id: "{{ sync_group_id | default('default-sync-group') }}"
+
+    - name: Create sync group (if not exists)
       command: >
         radosgw-admin sync group create
-        --group-id={{ sync_group_id | default('default-sync-group') }}
+        --group-id={{ effective_sync_group_id }}
         --status=allowed
       register: create_group_result
       failed_when: false
@@ -33,34 +33,34 @@
 
     - name: Create symmetrical flows
       when: item.flow_type == "symmetrical"
-      loop: "{{ sync_flows }}"
+      loop: "{{ sync_flows | default([]) }}"
       loop_control:
         label: "{{ item.flow_id }}"
       command: >
         radosgw-admin sync group flow create
-        --group-id={{ sync_group_id | default('default-sync-group') }}
+        --group-id={{ effective_sync_group_id }}
         --flow-id={{ item.flow_id }}
         --flow-type=symmetrical
         --zones={{ item.zones | join(',') }}
 
     - name: Create directional flows
       when: item.flow_type == "directional"
-      loop: "{{ sync_flows }}"
+      loop: "{{ sync_flows | default([]) }}"
       loop_control:
         label: "{{ item.flow_id }}"
       command: >
         radosgw-admin sync group flow create
-        --group-id={{ sync_group_id | default('default-sync-group') }}
+        --group-id={{ effective_sync_group_id }}
         --flow-id={{ item.flow_id }}
         --flow-type=directional
         --source-zone={{ item.source_zone }}
         --dest-zone={{ item.dest_zone }}
 
-
-    - name: Create sync pipe
+    - name: Create sync pipe (optional)
+      when: sync_pipe is defined
       command: >
         radosgw-admin sync group pipe create
-        --group-id={{ sync_group_id | default('default-sync-group') }}
+        --group-id={{ effective_sync_group_id }}
         --pipe-id={{ sync_pipe.pipe_id }}
         --source-zones='{{ sync_pipe.source_zones }}'
         --source-bucket='{{ sync_pipe.source_bucket }}'
@@ -70,7 +70,7 @@
     - name: Enable sync group
       command: >
         radosgw-admin sync group modify
-        --group-id={{ sync_group_id | default('default-sync-group') }}
+        --group-id={{ effective_sync_group_id }}
         --status={{ sync_group_status }}
 
     - name: Commit sync policy changes
