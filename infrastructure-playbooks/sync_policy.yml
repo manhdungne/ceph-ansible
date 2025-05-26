@@ -56,6 +56,11 @@
         --source-zone={{ item.source_zone }}
         --dest-zone={{ item.dest_zone }}
 
+    - name: DEBUG - Kiểm tra nội dung biến sync_pipe trước khi tạo pipe
+      debug:
+        var: sync_pipe
+
+
     - name: Create sync pipe (optional)
       when: sync_pipe is defined
       command: >
