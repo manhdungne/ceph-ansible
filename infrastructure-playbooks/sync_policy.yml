@@ -31,29 +31,31 @@
       failed_when: false
       changed_when: "'group-id' in create_group_result.stdout"
 
-    - name: Create sync flows
+    - name: Create symmetrical flows
+      when: item.flow_type == "symmetrical"
       loop: "{{ sync_flows }}"
       loop_control:
         label: "{{ item.flow_id }}"
-      block:
-        - name: Create symmetrical flow
-          when: item.flow_type == "symmetrical"
-          command: >
-            radosgw-admin sync group flow create
-            --group-id={{ sync_group_id }}
-            --flow-id={{ item.flow_id }}
-            --flow-type=symmetrical
-            --zones={{ item.zones | join(',') }}
+      command: >
+        radosgw-admin sync group flow create
+        --group-id={{ sync_group_id }}
+        --flow-id={{ item.flow_id }}
+        --flow-type=symmetrical
+        --zones={{ item.zones | join(',') }}
 
-        - name: Create directional flow
-          when: item.flow_type == "directional"
-          command: >
-            radosgw-admin sync group flow create
-            --group-id={{ sync_group_id }}
-            --flow-id={{ item.flow_id }}
-            --flow-type=directional
-            --source-zone={{ item.source_zone }}
-            --dest-zone={{ item.dest_zone }}
+    - name: Create directional flows
+      when: item.flow_type == "directional"
+      loop: "{{ sync_flows }}"
+      loop_control:
+        label: "{{ item.flow_id }}"
+      command: >
+        radosgw-admin sync group flow create
+        --group-id={{ sync_group_id }}
+        --flow-id={{ item.flow_id }}
+        --flow-type=directional
+        --source-zone={{ item.source_zone }}
+        --dest-zone={{ item.dest_zone }}
+
 
     - name: Create sync pipe
       command: >
