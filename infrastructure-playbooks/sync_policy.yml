@@ -66,6 +66,12 @@
         --source-bucket='{{ sync_pipe.source_bucket }}'
         --dest-zones='{{ sync_pipe.dest_zones }}'
         --dest-bucket='{{ sync_pipe.dest_bucket }}'
+    
+    - name: Kiểm tra biến sync_pipe có tồn tại
+      debug:
+        msg: "Đã nhận sync_pipe với ID: {{ sync_pipe.pipe_id }}"
+      when: sync_pipe is defined
+
 
     - name: Enable sync group
       command: >
