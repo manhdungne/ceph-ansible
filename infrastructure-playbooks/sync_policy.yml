@@ -25,7 +25,7 @@
     - name: Create sync group
       command: >
         radosgw-admin sync group create
-        --group-id={{ sync_group_id }}
+        --group-id={{ sync_group_id | default('default-sync-group') }}
         --status=allowed
       register: create_group_result
       failed_when: false
@@ -38,7 +38,7 @@
         label: "{{ item.flow_id }}"
       command: >
         radosgw-admin sync group flow create
-        --group-id={{ sync_group_id }}
+        --group-id={{ sync_group_id | default('default-sync-group') }}
         --flow-id={{ item.flow_id }}
         --flow-type=symmetrical
         --zones={{ item.zones | join(',') }}
@@ -50,7 +50,7 @@
         label: "{{ item.flow_id }}"
       command: >
         radosgw-admin sync group flow create
-        --group-id={{ sync_group_id }}
+        --group-id={{ sync_group_id | default('default-sync-group') }}
         --flow-id={{ item.flow_id }}
         --flow-type=directional
         --source-zone={{ item.source_zone }}
@@ -60,7 +60,7 @@
     - name: Create sync pipe
       command: >
         radosgw-admin sync group pipe create
-        --group-id={{ sync_group_id }}
+        --group-id={{ sync_group_id | default('default-sync-group') }}
         --pipe-id={{ sync_pipe.pipe_id }}
         --source-zones='{{ sync_pipe.source_zones }}'
         --source-bucket='{{ sync_pipe.source_bucket }}'
@@ -70,7 +70,7 @@
     - name: Enable sync group
       command: >
         radosgw-admin sync group modify
-        --group-id={{ sync_group_id }}
+        --group-id={{ sync_group_id | default('default-sync-group') }}
         --status={{ sync_group_status }}
 
     - name: Commit sync policy changes
