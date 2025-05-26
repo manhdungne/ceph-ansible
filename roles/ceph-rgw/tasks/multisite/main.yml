@@ -49,8 +49,3 @@
   when:
     - containerized_deployment | bool
 
-- name: Include sync policy configuration
-  include_tasks: set_sync_policy.yml
-  when:
-    - hostvars[inventory_hostname].sync_policies is defined
-    - inventory_hostname == groups['rgws'][0]
