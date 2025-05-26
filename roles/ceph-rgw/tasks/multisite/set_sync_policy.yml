@@ -1,0 +1,27 @@
+- name: "Set sync policies if defined"
+  when:
+    - sync_policies is defined
+  run_once: true
+  block:
+    - name: Set each sync policy
+      loop: "{{ sync_policies }}"
+      loop_control:
+        label: "{{ item.group_name }}"
+      vars:
+        realm_name: "{{ item.realm | default(radosgw_realm) }}"
+        zonegroup_name: "{{ item.zonegroup | default(radosgw_zonegroup) }}"
+      command: >
+        radosgw-admin sync policy set
+        --realm={{ realm_name }}
+        --zonegroup={{ zonegroup_name }}
+        --group-name={{ item.group_name }}
+        --status={{ item.status }}
+        --flow-type={{ item.flow_type }}
+        --source-zone={{ item.source_zone }}
+        --target-zones='{{ item.target_zones | to_json }}'
+      register: sync_policy_result
+      changed_when: "'error' not in sync_policy_result.stderr"
+
+    - name: Commit sync policy updates
+      command: radosgw-admin period update --commit
+      run_once: true
