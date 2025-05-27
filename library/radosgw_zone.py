@@ -208,6 +208,8 @@ def create_zone(module, container_image=None):
     secret_key = module.params.get('secret_key')
     default = module.params.get('default')
     master = module.params.get('master')
+    tier_type = module.params.get('tier_type')
+
 
     args = [
         'create',
@@ -230,6 +232,10 @@ def create_zone(module, container_image=None):
 
     if master:
         args.append('--master')
+    
+    if tier_type:
+        args.extend(['--tier-type=' + tier_type])
+
 
     cmd = generate_radosgw_cmd(cluster=cluster,
                                args=args,
@@ -252,6 +258,7 @@ def modify_zone(module, container_image=None):
     secret_key = module.params.get('secret_key')
     default = module.params.get('default')
     master = module.params.get('master')
+    tier_type = module.params.get('tier_type')
 
     args = [
         'modify',
@@ -274,6 +281,9 @@ def modify_zone(module, container_image=None):
 
     if master:
         args.append('--master')
+
+    if tier_type:
+        args.extend(['--tier-type=' + tier_type])
 
     cmd = generate_radosgw_cmd(cluster=cluster,
                                args=args,
@@ -412,6 +422,7 @@ def run_module():
         secret_key=dict(type='str', required=False, no_log=True),
         default=dict(type='bool', required=False, default=False),
         master=dict(type='bool', required=False, default=False),
+        tier_type=dict(type='str', required=False, default=None),
     )
 
     module = AnsibleModule(
